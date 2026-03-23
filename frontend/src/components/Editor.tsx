@@ -11,6 +11,7 @@
  *   onParse      — called when the user clicks the "Generate Diagram" button
  *   isParsing    — disables the button while the API request is in flight
  */
+import { useEffect } from "react";
 import MonacoEditor from "@monaco-editor/react";
 
 interface EditorProps {
@@ -77,6 +78,12 @@ Resources:
 `;
 
 export function Editor({ value, onChange, onParse, isParsing }: EditorProps) {
+  // On first render, if the parent hasn't set a value yet, seed state with
+  // the example template so the button is enabled and the user can click it.
+  useEffect(() => {
+    if (!value) onChange(EXAMPLE_TEMPLATE);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div style={styles.container}>
       {/* Header bar with title and action button */}
@@ -106,7 +113,7 @@ export function Editor({ value, onChange, onParse, isParsing }: EditorProps) {
         height="100%"
         language="yaml"
         theme="vs-dark"
-        value={value || EXAMPLE_TEMPLATE}
+        value={value}
         onChange={(v) => onChange(v ?? "")}
         options={{
           fontSize: 13,

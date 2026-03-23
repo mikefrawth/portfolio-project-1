@@ -19,6 +19,55 @@ import json
 import yaml
 from typing import Any
 
+
+# ---------------------------------------------------------------------------
+# CloudFormation YAML loader
+# ---------------------------------------------------------------------------
+# CloudFormation templates use YAML shorthand tags for intrinsic functions:
+#   !Ref LogicalName          → {"Ref": "LogicalName"}
+#   !GetAtt Resource.Attr     → {"Fn::GetAtt": ["Resource", "Attr"]}
+#   !Sub "string ${Var}"      → {"Fn::Sub": "string ${Var}"}
+#   !Join [",", [a, b]]       → {"Fn::Join": [",", [a, b]]}
+#   ... etc.
+#
+# PyYAML's safe_load rejects these because they're not standard YAML 1.1 tags.
+# We register constructors for each CF tag so PyYAML converts them into the
+# equivalent dict form — which our Ref/GetAtt extractor already handles.
+
+class _CfnLoader(yaml.SafeLoader):
+    pass
+
+def _tag_constructor(tag_suffix: str):
+    """
+    Returns a PyYAML constructor function that converts a YAML tag node
+    into its CloudFormation dict equivalent.
+
+    Scalar tags  (e.g. !Ref MyBucket)        → {"Ref": "MyBucket"}
+    Sequence tags (e.g. !Select [0, [a,b]])   → {"Fn::Select": [0, [a,b]]}
+    Mapping tags  (e.g. !Transform {...})      → {"Fn::Transform": {...}}
+
+    For !Ref we use "Ref" as the key; for everything else we use "Fn::<Tag>".
+    """
+    fn_key = tag_suffix if tag_suffix == "Ref" or tag_suffix == "Condition" else f"Fn::{tag_suffix}"
+
+    def constructor(loader: yaml.SafeLoader, node: yaml.Node) -> Any:
+        if isinstance(node, yaml.ScalarNode):
+            return {fn_key: loader.construct_scalar(node)}
+        elif isinstance(node, yaml.SequenceNode):
+            return {fn_key: loader.construct_sequence(node, deep=True)}
+        else:
+            return {fn_key: loader.construct_mapping(node, deep=True)}
+
+    return constructor
+
+# Register constructors for every CloudFormation intrinsic function tag
+for _tag in [
+    "Ref", "GetAtt", "Sub", "Join", "Select", "Split", "FindInMap",
+    "Base64", "If", "Not", "And", "Or", "Equals", "ImportValue",
+    "Transform", "Condition",
+]:
+    _CfnLoader.add_constructor(f"!{_tag}", _tag_constructor(_tag))
+
 from app.models.diagram import DiagramNode, DiagramEdge, NodeData, NodePosition
 
 
@@ -215,7 +264,7 @@ def parse_template(template_str: str) -> tuple[list[DiagramNode], list[DiagramEd
         if template_str.startswith("{"):
             template = json.loads(template_str)
         else:
-            template = yaml.safe_load(template_str)
+            template = yaml.load(template_str, Loader=_CfnLoader)
     except Exception as e:
         raise ValueError(f"Could not parse template as JSON or YAML: {e}")
 

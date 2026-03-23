@@ -18,6 +18,8 @@ export default defineConfig({
 
   server: {
     port: 5173,
+    // Bind to all interfaces so both localhost and 127.0.0.1 work on Windows
+    host: "0.0.0.0",
     proxy: {
       // Any request to /api/* gets forwarded to the local FastAPI server.
       // This means in development you can call fetch("/api/v1/parse")

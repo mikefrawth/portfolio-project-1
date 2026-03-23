@@ -17,16 +17,64 @@ When running in AWS Lambda:
 """
 
 import os
+import logging
+from contextlib import asynccontextmanager
+
+import boto3
+from botocore.exceptions import ClientError
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from app.routes.diagrams import router as diagrams_router
 
+logger = logging.getLogger(__name__)
+
+
+def _ensure_local_table() -> None:
+    """
+    Create the DynamoDB table automatically when running against DynamoDB Local.
+    In production the table is created by the CDK stack — we never run this there.
+    """
+    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT")
+    if not endpoint_url:
+        return  # Real AWS — table is managed by CDK
+
+    table_name = os.environ.get("DIAGRAMS_TABLE_NAME", "archviz-diagrams")
+    client = boto3.client(
+        "dynamodb",
+        endpoint_url=endpoint_url,
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", "local"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "local"),
+    )
+
+    try:
+        client.describe_table(TableName=table_name)
+        logger.info("DynamoDB table '%s' already exists.", table_name)
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ResourceNotFoundException":
+            raise
+        logger.info("Creating DynamoDB table '%s' in local emulator…", table_name)
+        client.create_table(
+            TableName=table_name,
+            KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
+            AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        logger.info("Table '%s' created.", table_name)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    _ensure_local_table()
+    yield
+
 # ---------------------------------------------------------------------------
 # App instance
 # ---------------------------------------------------------------------------
 app = FastAPI(
+    lifespan=lifespan,
     title="ArchViz API",
     description="Parses CloudFormation templates and returns graph data for visualization.",
     version="1.0.0",

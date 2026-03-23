@@ -63,11 +63,19 @@ def _get_table():
     endpoint_url = os.environ.get("DYNAMODB_ENDPOINT")  # Only set locally
     table_name = os.environ.get("DIAGRAMS_TABLE_NAME", "archviz-diagrams")
 
-    dynamodb = boto3.resource(
-        "dynamodb",
-        endpoint_url=endpoint_url,   # None in production → uses real AWS
-        region_name=os.environ.get("AWS_REGION", "us-east-1"),
-    )
+    kwargs: dict = {
+        "endpoint_url": endpoint_url,   # None in production → uses real AWS
+        "region_name": os.environ.get("AWS_REGION", "us-east-1"),
+    }
+
+    # DynamoDB Local requires *some* credentials even though it ignores them.
+    # Fall back to dummy values so boto3 doesn't raise a NoCredentialsError
+    # when running locally without a ~/.aws/credentials file.
+    if endpoint_url:
+        kwargs["aws_access_key_id"]     = os.environ.get("AWS_ACCESS_KEY_ID",     "local")
+        kwargs["aws_secret_access_key"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "local")
+
+    dynamodb = boto3.resource("dynamodb", **kwargs)
     return dynamodb.Table(table_name)
 
 

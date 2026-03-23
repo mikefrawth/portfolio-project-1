@@ -29,7 +29,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import type { DiagramNode, DiagramEdge } from "../api/client";
-import { AwsNode } from "./AwsNode";
+import { AwsNode, getCategory } from "./AwsNode";
 
 // ---------------------------------------------------------------------------
 // Register custom node types
@@ -66,6 +66,8 @@ export function DiagramCanvas({ nodes, edges, onNodeClick }: DiagramCanvasProps)
     // smoothstep edges curve around each other, preventing label pile-up
     // when multiple edges leave the same node
     type: "smoothstep",
+    // zIndex > 0 renders this edge's HTML label above node boxes (default node z-index is 0)
+    zIndex: 5,
     style: { stroke: "#6c8ef5", strokeWidth: 1.5 },
     labelStyle: { fill: "#8892a4", fontSize: 10 },
     labelBgStyle: { fill: "#1a1d27", fillOpacity: 0.85 },
@@ -124,8 +126,9 @@ export function DiagramCanvas({ nodes, edges, onNodeClick }: DiagramCanvasProps)
           style={{ background: "#1a1d27", border: "1px solid #2e3347" }}
           maskColor="rgba(15,17,23,0.6)"
           nodeColor={(node) => {
-            const category = (node.data as { category?: string }).category;
-            return categoryColor(category);
+            // node.data has `resourceType` — derive the category the same way AwsNode does
+            const resourceType = (node.data as { resourceType?: string }).resourceType ?? "";
+            return categoryColor(getCategory(resourceType));
           }}
         />
       </ReactFlow>

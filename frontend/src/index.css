@@ -46,3 +46,8 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-surface); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Ensure React Flow edge labels (HTML div) render above node boxes */
+.react-flow__edge-labels {
+  z-index: 10;
+}

@@ -30,7 +30,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 // Map resource type to category (mirrors SERVICE_CATEGORIES in the parser)
-function getCategory(resourceType: string): string {
+export function getCategory(resourceType: string): string {
   if (resourceType.includes("Lambda") || resourceType.includes("EC2") || resourceType.includes("ECS") || resourceType.includes("Batch")) return "compute";
   if (resourceType.includes("S3") || resourceType.includes("DynamoDB") || resourceType.includes("RDS") || resourceType.includes("ElastiCache")) return "storage";
   if (resourceType.includes("ApiGateway") || resourceType.includes("CloudFront") || resourceType.includes("Route53") || resourceType.includes("VPC") || resourceType.includes("Subnet") || resourceType.includes("LoadBalancing")) return "network";

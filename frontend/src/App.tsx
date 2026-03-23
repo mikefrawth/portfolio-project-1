@@ -33,6 +33,7 @@ import { Editor } from "./components/Editor";
 import { DiagramCanvas } from "./components/DiagramCanvas";
 import { NodeDetail } from "./components/NodeDetail";
 import { SavedDiagrams } from "./components/SavedDiagrams";
+import { HelpModal } from "./components/HelpModal";
 
 import {
   parseTemplate,
@@ -67,6 +68,9 @@ export default function App() {
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Help modal visibility
+  const [showHelp, setShowHelp] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Load saved diagrams on first render
@@ -153,15 +157,26 @@ export default function App() {
       <header style={styles.topBar}>
         <span style={styles.logo}>ArchViz</span>
         <span style={styles.tagline}>CloudFormation Diagram Generator</span>
-        {error && (
-          <div style={styles.error}>
-            ⚠ {error}
-            <button onClick={() => setError(null)} style={styles.dismissBtn}>
-              ✕
-            </button>
-          </div>
-        )}
+        <div style={styles.topBarRight}>
+          {error && (
+            <div style={styles.error}>
+              ⚠ {error}
+              <button onClick={() => setError(null)} style={styles.dismissBtn}>
+                ✕
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => setShowHelp(true)}
+            style={styles.helpBtn}
+            title="How to use ArchViz"
+          >
+            ?
+          </button>
+        </div>
       </header>
+
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
       {/* ── Main layout ── */}
       <div style={styles.main}>
@@ -237,8 +252,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     color: "var(--text-secondary)",
   },
-  error: {
+  topBarRight: {
     marginLeft: "auto",
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  error: {
     display: "flex",
     alignItems: "center",
     gap: 8,
@@ -256,6 +276,21 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: 11,
     padding: "0 2px",
+  },
+  helpBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: "50%",
+    border: "1px solid var(--border)",
+    background: "var(--bg-elevated)",
+    color: "var(--text-secondary)",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   main: {
     flex: 1,

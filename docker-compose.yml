@@ -1,0 +1,37 @@
+version: "3.9"
+
+# ArchViz — local development stack
+#
+# Starts two services:
+#   dynamodb-local  — Amazon's DynamoDB emulator (no AWS account needed)
+#   backend         — FastAPI app, auto-creates the table on startup
+#
+# Usage:
+#   docker compose up -d          # start in background
+#   docker compose down           # stop and remove containers
+#   docker compose logs backend   # view backend logs
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: archviz-dynamodb
+    ports:
+      - "8001:8000"   # expose on 8001 to avoid clashing with the backend on 8000
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+
+  backend:
+    build: ./backend
+    container_name: archviz-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      DIAGRAMS_TABLE_NAME: archviz-diagrams
+      AWS_REGION: us-east-1
+      CORS_ORIGINS: http://localhost:5173
+    depends_on:
+      - dynamodb-local
+    # Reload on code changes when running in development
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

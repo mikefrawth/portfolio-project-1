@@ -91,36 +91,36 @@ const nodeStyle: React.CSSProperties = {
   alignItems: "stretch",
   background: "var(--bg-elevated)",
   border: "1px solid var(--border)",
-  borderRadius: 8,
-  minWidth: 160,
-  maxWidth: 200,
+  borderRadius: 6,
+  minWidth: 120,
+  maxWidth: 160,
   overflow: "hidden",
   cursor: "pointer",
   transition: "border-color 0.15s, box-shadow 0.15s",
 };
 
 const accentBar: React.CSSProperties = {
-  width: 4,
+  width: 3,
   flexShrink: 0,
 };
 
 const content: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  padding: "8px 10px",
-  gap: 2,
+  padding: "5px 8px",
+  gap: 1,
   overflow: "hidden",
 };
 
 const serviceLabel: React.CSSProperties = {
-  fontSize: 10,
+  fontSize: 9,
   fontWeight: 700,
   textTransform: "uppercase",
   letterSpacing: "0.06em",
 };
 
 const resourceLabel: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 11,
   fontWeight: 500,
   color: "var(--text-primary)",
   whiteSpace: "nowrap",
@@ -130,7 +130,7 @@ const resourceLabel: React.CSSProperties = {
 
 const handleStyle: React.CSSProperties = {
   background: "var(--border)",
-  width: 8,
-  height: 8,
+  width: 6,
+  height: 6,
   border: "2px solid var(--bg-surface)",
 };

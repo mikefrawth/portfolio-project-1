@@ -63,10 +63,13 @@ export function DiagramCanvas({ nodes, edges, onNodeClick }: DiagramCanvasProps)
     target: e.target,
     label: e.label,
     animated: e.animated ?? true,
-    // Style the edges to match our dark theme
+    // smoothstep edges curve around each other, preventing label pile-up
+    // when multiple edges leave the same node
+    type: "smoothstep",
     style: { stroke: "#6c8ef5", strokeWidth: 1.5 },
-    labelStyle: { fill: "#8892a4", fontSize: 11 },
-    labelBgStyle: { fill: "#1a1d27" },
+    labelStyle: { fill: "#8892a4", fontSize: 10 },
+    labelBgStyle: { fill: "#1a1d27", fillOpacity: 0.85 },
+    labelBgPadding: [3, 4] as [number, number],
   }));
 
   // When a node is clicked, pull out the original DiagramNode and pass it up
@@ -118,9 +121,9 @@ export function DiagramCanvas({ nodes, edges, onNodeClick }: DiagramCanvasProps)
         <Controls style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }} />
         {/* Mini overview map in the bottom-right corner */}
         <MiniMap
-          style={{ background: "var(--bg-surface)" }}
+          style={{ background: "#1a1d27", border: "1px solid #2e3347" }}
+          maskColor="rgba(15,17,23,0.6)"
           nodeColor={(node) => {
-            // Color the minimap dots by service category
             const category = (node.data as { category?: string }).category;
             return categoryColor(category);
           }}

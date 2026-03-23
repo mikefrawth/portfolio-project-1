@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    // Target modern browsers — no need to compile down to ES5
+    "target": "ES2020",
+    // Use React's JSX transform (no need to import React in every file)
+    "jsx": "react-jsx",
+    // Enable all strict type checks — this is what makes TypeScript useful
+    "strict": true,
+    // Module system: ESNext for Vite's bundler
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Allow importing JSON files
+    "resolveJsonModule": true,
+    // Don't emit output — Vite handles that
+    "noEmit": true,
+    // Include DOM types (window, document, fetch, etc.)
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  },
+  "include": ["src"]
+}
